@@ -12,6 +12,8 @@ import Button from "../components/Button"
 
 import { useSiteSettings } from "../hooks/useSiteSettings"
 
+import SEO from "../components/SEO"
+
 import {
   getFeaturedCustomizedProducts,
 } from "../services/productService"
@@ -79,6 +81,12 @@ function Customized() {
 
   return (
     <div className="bg-[#f8f4ed]">
+
+      <SEO
+        title="Customized Embroidery & Gifts | Chirashree Creation"
+        description="Create something personal with customized embroidery, names, dates, colors and meaningful details made specially for you."
+        path="/customized"
+      />
 
       {/* =====================================================
           HERO
@@ -186,11 +194,11 @@ function Customized() {
 
                 const imageUrl = product.mainImage
                   ? urlFor(product.mainImage)
-                      .width(900)
-                      .height(900)
-                      .fit("crop")
-                      .auto("format")
-                      .url()
+                    .width(900)
+                    .height(900)
+                    .fit("crop")
+                    .auto("format")
+                    .url()
                   : null
 
                 const productPath = product.slug?.current

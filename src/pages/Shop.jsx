@@ -4,6 +4,8 @@ import { Search, SlidersHorizontal, X } from "lucide-react"
 import ProductCard from "../components/ProductCard"
 import SectionHeading from "../components/SectionHeading"
 
+import SEO from "../components/SEO"
+
 import {
   getAllProducts,
   getCategories,
@@ -85,6 +87,12 @@ function Shop() {
   return (
     <div className="min-h-screen bg-[#f8f4ed]">
 
+      <SEO
+        title="Shop Handmade Embroidery | Chirashree Creation"
+        description="Explore handmade embroidery, personalized gifts and thoughtful creations from Chirashree Creation."
+        path="/shop"
+      />
+
       {/* Page Header */}
       <section className="px-6 pb-10 pt-16 sm:px-8 lg:px-10 lg:pb-14 lg:pt-20">
         <div className="mx-auto max-w-7xl">
@@ -139,11 +147,10 @@ function Shop() {
                 onClick={() =>
                   setSelectedCategory("all")
                 }
-                className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${
-                  selectedCategory === "all"
+                className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${selectedCategory === "all"
                     ? "bg-[#4a3528] text-white"
                     : "bg-[#efe7da] text-[#4a3528] hover:bg-[#e5d8c8]"
-                }`}
+                  }`}
               >
                 All
               </button>
@@ -157,12 +164,11 @@ function Shop() {
                       category.slug.current
                     )
                   }
-                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${
-                    selectedCategory ===
-                    category.slug.current
+                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${selectedCategory ===
+                      category.slug.current
                       ? "bg-[#4a3528] text-white"
                       : "bg-[#efe7da] text-[#4a3528] hover:bg-[#e5d8c8]"
-                  }`}
+                    }`}
                 >
                   {category.name}
                 </button>
@@ -180,11 +186,10 @@ function Shop() {
             <button
               type="button"
               onClick={() => setSelectedType("all")}
-              className={`rounded-full px-3 py-1.5 text-[11px] transition ${
-                selectedType === "all"
+              className={`rounded-full px-3 py-1.5 text-[11px] transition ${selectedType === "all"
                   ? "bg-[#b9827a] text-white"
                   : "bg-[#efe7da] text-[#765c4a]"
-              }`}
+                }`}
             >
               All
             </button>
@@ -194,11 +199,10 @@ function Shop() {
               onClick={() =>
                 setSelectedType("readyMade")
               }
-              className={`rounded-full px-3 py-1.5 text-[11px] transition ${
-                selectedType === "readyMade"
+              className={`rounded-full px-3 py-1.5 text-[11px] transition ${selectedType === "readyMade"
                   ? "bg-[#b9827a] text-white"
                   : "bg-[#efe7da] text-[#765c4a]"
-              }`}
+                }`}
             >
               Ready-made
             </button>
@@ -208,11 +212,10 @@ function Shop() {
               onClick={() =>
                 setSelectedType("customized")
               }
-              className={`rounded-full px-3 py-1.5 text-[11px] transition ${
-                selectedType === "customized"
+              className={`rounded-full px-3 py-1.5 text-[11px] transition ${selectedType === "customized"
                   ? "bg-[#b9827a] text-white"
                   : "bg-[#efe7da] text-[#765c4a]"
-              }`}
+                }`}
             >
               Customized
             </button>

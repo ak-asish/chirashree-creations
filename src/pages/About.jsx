@@ -7,6 +7,8 @@ import weddingImage from "../assets/about/embroidery-wedding.jpg"
 import rakhiImage from "../assets/about/embroidery-rakhi.jpg"
 import handsImage from "../assets/about/embroidery-hands.jpg"
 
+import SEO from "../components/SEO"
+
 const values = [
   {
     icon: Hand,
@@ -70,6 +72,12 @@ const embroideryImages = [
 function About() {
   return (
     <div className="bg-[#f8f4ed]">
+
+      <SEO
+        title="Our Story | Chirashree Creation"
+        description="Discover the story behind Chirashree Creation and our love for handmade embroidery, meaningful details and personalized creations."
+        path="/about"
+      />
 
       {/* Hero */}
       <section className="px-6 py-16 sm:px-8 lg:px-10 lg:py-24">

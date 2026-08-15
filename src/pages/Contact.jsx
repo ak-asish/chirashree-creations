@@ -2,6 +2,8 @@ import { Mail, MessageCircle } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useSiteSettings } from "../hooks/useSiteSettings"
 
+import SEO from "../components/SEO"
+
 function Contact() {
   const { settings } = useSiteSettings()
 
@@ -17,6 +19,12 @@ function Contact() {
 
   return (
     <div className="bg-[#f8f4ed]">
+
+      <SEO
+        title="Contact Chirashree Creation | Handmade Creations"
+        description="Get in touch with Chirashree Creation for handmade embroidery, personalized gifts and custom creation enquiries."
+        path="/contact"
+      />
 
       {/* Header */}
       <section className="px-6 py-16 text-center sm:px-8 lg:px-10 lg:py-24">

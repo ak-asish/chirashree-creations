@@ -6,6 +6,8 @@ import ProductCard from "../components/ProductCard"
 import { getAllProducts } from "../services/productService"
 import { useFavorites } from "../hooks/useFavorites"
 
+import SEO from "../components/SEO"
+
 function Favorites() {
   const {
     favorites,
@@ -39,6 +41,13 @@ function Favorites() {
 
   return (
     <div className="min-h-screen bg-[#f8f4ed]">
+
+      <SEO
+        title="Saved Creations | Chirashree Creation"
+        description="View your saved Chirashree Creation favorites."
+        path="/favorites"
+        noIndex
+      />
 
       <section className="px-6 pb-10 pt-16 sm:px-8 lg:px-10 lg:pb-14 lg:pt-20">
         <div className="mx-auto max-w-7xl">
