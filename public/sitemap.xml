@@ -1,27 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 >
-
   <url>
     <loc>https://chirashree.netlify.app/</loc>
   </url>
-
   <url>
     <loc>https://chirashree.netlify.app/shop</loc>
   </url>
-
   <url>
     <loc>https://chirashree.netlify.app/customized</loc>
   </url>
-
   <url>
     <loc>https://chirashree.netlify.app/about</loc>
   </url>
-
   <url>
     <loc>https://chirashree.netlify.app/contact</loc>
   </url>
-
+  <url>
+    <loc>https://chirashree.netlify.app/category/birthday</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/category/rakhi</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/category/gifts</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/category/wedding</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/category/anniversary</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/category/baby</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/rakhi</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/anniversary</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/anniversary-card</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/crafted-birthday-frame</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/customized-wedding-frame</loc>
+  </url>
+  <url>
+    <loc>https://chirashree.netlify.app/product/new-wedding-frame</loc>
+  </url>
 </urlset>

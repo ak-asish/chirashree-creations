@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-sitemap.mjs && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -13,6 +13,7 @@
     "@sanity/client": "^8.0.0",
     "@sanity/image-url": "^2.1.1",
     "@tailwindcss/vite": "^4.3.3",
+    "dotenv": "^17.4.2",
     "lucide-react": "^1.31.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
