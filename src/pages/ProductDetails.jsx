@@ -3,7 +3,6 @@ import { ArrowLeft, ArrowRight, Check, Share2 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 
 import { useSiteSettings } from "../hooks/useSiteSettings"
-
 import { getProductBySlug } from "../services/productService"
 import { urlFor } from "../lib/image"
 import { useFavorites } from "../hooks/useFavorites"
@@ -46,6 +45,266 @@ function ProductDetails() {
 
     loadProduct()
   }, [slug])
+
+  /*
+   * Dynamic SEO metadata for product pages.
+   *
+   * This updates the browser title, description,
+   * canonical URL and social sharing metadata
+   * based on the current Sanity product.
+   */
+  useEffect(() => {
+    if (!product) return
+
+    const siteName = "Chirashree Creation"
+    const siteUrl = "https://chirashree.netlify.app"
+
+    const productSlug =
+      product.slug?.current || slug
+
+    const productUrl =
+      `${siteUrl}/product/${productSlug}`
+
+    const title =
+      `${product.name} | ${siteName}`
+
+    const description =
+      product.shortDescription ||
+      product.description ||
+      `Discover ${product.name}, a handcrafted creation from ${siteName}.`
+
+    const imageUrl = product.mainImage
+      ? urlFor(product.mainImage)
+          .width(1200)
+          .height(1200)
+          .fit("crop")
+          .auto("format")
+          .url()
+      : null
+
+    document.title = title
+
+    function setMeta(attribute, key, content) {
+      if (!content) return
+
+      let element = document.head.querySelector(
+        `meta[${attribute}="${key}"]`
+      )
+
+      if (!element) {
+        element = document.createElement("meta")
+        element.setAttribute(attribute, key)
+        document.head.appendChild(element)
+      }
+
+      element.setAttribute("content", content)
+    }
+
+    /*
+     * Basic SEO
+     */
+    setMeta(
+      "name",
+      "description",
+      description
+    )
+
+    setMeta(
+      "name",
+      "robots",
+      "index, follow"
+    )
+
+    /*
+     * Open Graph
+     */
+    setMeta(
+      "property",
+      "og:title",
+      title
+    )
+
+    setMeta(
+      "property",
+      "og:description",
+      description
+    )
+
+    setMeta(
+      "property",
+      "og:type",
+      "product"
+    )
+
+    setMeta(
+      "property",
+      "og:url",
+      productUrl
+    )
+
+    setMeta(
+      "property",
+      "og:site_name",
+      siteName
+    )
+
+    if (imageUrl) {
+      setMeta(
+        "property",
+        "og:image",
+        imageUrl
+      )
+    }
+
+    /*
+     * Twitter / X
+     */
+    setMeta(
+      "name",
+      "twitter:card",
+      "summary_large_image"
+    )
+
+    setMeta(
+      "name",
+      "twitter:title",
+      title
+    )
+
+    setMeta(
+      "name",
+      "twitter:description",
+      description
+    )
+
+    if (imageUrl) {
+      setMeta(
+        "name",
+        "twitter:image",
+        imageUrl
+      )
+    }
+
+    /*
+     * Canonical URL
+     */
+    let canonical = document.head.querySelector(
+      'link[rel="canonical"]'
+    )
+
+    if (!canonical) {
+      canonical = document.createElement("link")
+      canonical.setAttribute("rel", "canonical")
+      document.head.appendChild(canonical)
+    }
+
+    canonical.setAttribute(
+      "href",
+      productUrl
+    )
+
+    /*
+     * Restore homepage metadata when
+     * leaving the product page.
+     */
+    return () => {
+      const defaultTitle =
+        "Chirashree Creation | Handmade Embroidery & Personalized Gifts"
+
+      const defaultDescription =
+        "Chirashree Creation creates handcrafted embroidery, personalized gifts and meaningful handmade creations for weddings, celebrations and special moments."
+
+      const defaultOgDescription =
+        "Handcrafted embroidery and personalized creations made for meaningful moments."
+
+      const defaultUrl =
+        `${siteUrl}/`
+
+      document.title = defaultTitle
+
+      setMeta(
+        "name",
+        "description",
+        defaultDescription
+      )
+
+      setMeta(
+        "name",
+        "robots",
+        "index, follow"
+      )
+
+      setMeta(
+        "property",
+        "og:title",
+        defaultTitle
+      )
+
+      setMeta(
+        "property",
+        "og:description",
+        defaultOgDescription
+      )
+
+      setMeta(
+        "property",
+        "og:type",
+        "website"
+      )
+
+      setMeta(
+        "property",
+        "og:url",
+        defaultUrl
+      )
+
+      setMeta(
+        "property",
+        "og:site_name",
+        siteName
+      )
+
+      setMeta(
+        "name",
+        "twitter:card",
+        "summary_large_image"
+      )
+
+      setMeta(
+        "name",
+        "twitter:title",
+        defaultTitle
+      )
+
+      setMeta(
+        "name",
+        "twitter:description",
+        defaultOgDescription
+      )
+
+      /*
+       * Remove product-specific social images.
+       */
+      const ogImage = document.head.querySelector(
+        'meta[property="og:image"]'
+      )
+
+      const twitterImage = document.head.querySelector(
+        'meta[name="twitter:image"]'
+      )
+
+      ogImage?.remove()
+      twitterImage?.remove()
+
+      /*
+       * Restore homepage canonical URL.
+       */
+      canonical?.setAttribute(
+        "href",
+        defaultUrl
+      )
+    }
+  }, [product, slug])
 
   if (loading) {
     return (
@@ -145,18 +404,25 @@ function ProductDetails() {
   }
 
   function handleTouchStart(event) {
-    touchStartX.current = event.touches[0].clientX
+    touchStartX.current =
+      event.touches[0].clientX
   }
 
   function handleTouchEnd(event) {
     if (touchStartX.current === null) return
 
-    const touchEndX = event.changedTouches[0].clientX
-    const distance = touchStartX.current - touchEndX
+    const touchEndX =
+      event.changedTouches[0].clientX
+
+    const distance =
+      touchStartX.current - touchEndX
 
     const minimumSwipeDistance = 50
 
-    if (Math.abs(distance) >= minimumSwipeDistance) {
+    if (
+      Math.abs(distance) >=
+      minimumSwipeDistance
+    ) {
       if (distance > 0) {
         showNextImage()
       } else {
@@ -184,7 +450,10 @@ function ProductDetails() {
       }
     } catch (error) {
       if (error?.name !== "AbortError") {
-        console.error("Unable to share product:", error)
+        console.error(
+          "Unable to share product:",
+          error
+        )
       }
     }
   }
@@ -194,15 +463,16 @@ function ProductDetails() {
       ? `₹${product.price.toLocaleString("en-IN")}`
       : "Price to be confirmed"
 
-    const customizationMessage = product.isCustomizable
-      ? `
-Customization details:
+    const customizationMessage =
+      product.isCustomizable
+        ? `
+Customizaton details:
 • Names:
 • Date:
 • Preferred colors:
 • Other details:
 `
-      : ""
+        : ""
 
     const message = `Hi Chirashree Creation,
 
@@ -216,7 +486,9 @@ Please let me know about availability and ordering details.
 Thank you!`
 
     try {
-      await navigator.clipboard.writeText(message)
+      await navigator.clipboard.writeText(
+        message
+      )
 
       setOrderCopied(true)
 
@@ -273,7 +545,9 @@ Thank you!`
                       ? "Remove from favorites"
                       : "Save to favorites"
                   }
-                  aria-pressed={isFavorite(product._id)}
+                  aria-pressed={isFavorite(
+                    product._id
+                  )}
                   className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:scale-105 sm:h-11 sm:w-11 ${
                     isFavorite(product._id)
                       ? "text-[#a85f4e]"
@@ -302,7 +576,6 @@ Thank you!`
 
               </div>
 
-
               {/* Previous image */}
               {galleryImages.length > 1 && (
                 <button
@@ -318,7 +591,6 @@ Thank you!`
                 </button>
               )}
 
-
               {/* Next image */}
               {galleryImages.length > 1 && (
                 <button
@@ -333,7 +605,6 @@ Thank you!`
                   />
                 </button>
               )}
-
 
               {/* Product image */}
               {imageUrl ? (
@@ -354,7 +625,6 @@ Thank you!`
 
             </div>
 
-
             {/* Image counter / swipe hint */}
             {galleryImages.length > 1 && (
               <div className="mt-3 flex items-center justify-between">
@@ -369,7 +639,6 @@ Thank you!`
 
               </div>
             )}
-
 
             {/* Gallery thumbnails */}
             {galleryImages.length > 1 && (
@@ -426,7 +695,6 @@ Thank you!`
             )}
 
           </div>
-
 
           {/* Product Information */}
           <div className="min-w-0 lg:py-4">
@@ -576,7 +844,6 @@ Thank you!`
 
             </div>
 
-
             {/* Product Details */}
             <div className="mt-10 border-t border-[#e5dcd0]">
 
@@ -621,7 +888,6 @@ Thank you!`
           </div>
         </div>
       </section>
-
 
       {/* Description */}
       {product.description && (
