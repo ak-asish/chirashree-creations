@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { ArrowLeft, ArrowRight, Check, Share2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, ArrowLeft, Check, Share2 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 
 import { useSiteSettings } from "../hooks/useSiteSettings"
@@ -581,8 +581,8 @@ Thank you!`
                       product._id
                     )}
                     className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:scale-105 sm:h-11 sm:w-11 ${isFavorite(product._id)
-                        ? "text-[#a85f4e]"
-                        : "text-[#4a3528]"
+                      ? "text-[#a85f4e]"
+                      : "text-[#4a3528]"
                       }`}
                   >
                     <span className="text-xl leading-none">
@@ -613,11 +613,12 @@ Thank you!`
                     type="button"
                     onClick={showPreviousImage}
                     aria-label="Previous product image"
-                    className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#4a3528] shadow-md backdrop-blur-sm transition hover:scale-105 hover:bg-white hover:text-[#a85f4e] sm:left-4 sm:h-11 sm:w-11"
+                    className="group absolute left-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none sm:left-5"
                   >
-                    <ArrowLeft
-                      size={18}
-                      strokeWidth={1.6}
+                    <ChevronLeft
+                      size={30}
+                      strokeWidth={1.5}
+                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:-translate-x-0.5"
                     />
                   </button>
                 )}
@@ -628,11 +629,12 @@ Thank you!`
                     type="button"
                     onClick={showNextImage}
                     aria-label="Next product image"
-                    className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#4a3528] shadow-md backdrop-blur-sm transition hover:scale-105 hover:bg-white hover:text-[#a85f4e] sm:right-4 sm:h-11 sm:w-11"
+                    className="group absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none sm:right-5"
                   >
-                    <ArrowRight
-                      size={18}
-                      strokeWidth={1.6}
+                    <ChevronRight
+                      size={30}
+                      strokeWidth={1.5}
+                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:translate-x-0.5"
                     />
                   </button>
                 )}
@@ -704,8 +706,8 @@ Thank you!`
                             : undefined
                         }
                         className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-[4px] border-2 transition duration-300 sm:h-24 sm:w-24 ${isSelected
-                            ? "border-[#a85f4e]"
-                            : "border-transparent hover:border-[#d8cbbd]"
+                          ? "border-[#a85f4e]"
+                          : "border-transparent hover:border-[#d8cbbd]"
                           }`}
                       >
                         <img
@@ -851,8 +853,8 @@ Thank you!`
                       toggleFavorite(product._id)
                     }
                     className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition ${isFavorite(product._id)
-                        ? "border-[#a85f4e] bg-[#efe0d8] text-[#a85f4e]"
-                        : "border-[#d8cbbd] text-[#4a3528] hover:border-[#a85f4e] hover:text-[#a85f4e]"
+                      ? "border-[#a85f4e] bg-[#efe0d8] text-[#a85f4e]"
+                      : "border-[#d8cbbd] text-[#4a3528] hover:border-[#a85f4e] hover:text-[#a85f4e]"
                       }`}
                   >
                     <span className="text-base">
