@@ -6,6 +6,7 @@ import {
   Check,
   Share2,
 } from "lucide-react"
+import { FaInstagram } from "react-icons/fa"
 import { Link, useParams } from "react-router-dom"
 
 import { useSiteSettings } from "../hooks/useSiteSettings"
@@ -28,8 +29,12 @@ function ProductDetails() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [previousImage, setPreviousImage] = useState(null)
 
+  // Sticky order button
+  const [showStickyOrder, setShowStickyOrder] = useState(true)
+
   const touchStartX = useRef(null)
   const animationTimeoutRef = useRef(null)
+  const orderButtonRef = useRef(null)
 
   const { settings } = useSiteSettings()
 
@@ -48,6 +53,38 @@ function ProductDetails() {
       }
     }
   }, [])
+
+  /*
+   * Watch the real "Order on Instagram" button.
+   *
+   * When the real button is visible on screen,
+   * hide the floating sticky version.
+   *
+   * When the real button is outside the viewport,
+   * show the floating version.
+   */
+  useEffect(() => {
+    if (!product) return
+
+    const orderButton = orderButtonRef.current
+
+    if (!orderButton) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyOrder(!entry.isIntersecting)
+      },
+      {
+        threshold: 0.15,
+      }
+    )
+
+    observer.observe(orderButton)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [product])
 
   /*
    * Load product
@@ -409,7 +446,7 @@ function ProductDetails() {
 
   const instagramUrl =
     instagramUsername
-      ? `https://instagram.com/${instagramUsername}`
+      ? `https://ig.me/m/${instagramUsername}`
       : "#"
 
   /*
@@ -733,6 +770,26 @@ Thank you!`
             ),
         }}
       />
+
+      {/* Floating sticky Order button */}
+      {showStickyOrder && (
+        <div className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4 sm:px-6">
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-[#9f5845] px-5 py-4 text-sm font-medium text-white shadow-[0_8px_30px_rgba(74,53,40,0.22)] transition-all duration-300 hover:bg-[#844737] active:scale-[0.98]"
+          >
+            <span className="shrink-0 text-base">
+              <FaInstagram/>
+            </span>
+
+            <span>
+              Order on Instagram
+            </span>
+          </a>
+        </div>
+      )}
 
       <div className="min-h-screen overflow-x-hidden bg-[#f8f4ed]">
 
@@ -1089,15 +1146,14 @@ Thank you!`
               <div className="mt-8 min-w-0">
 
                 <a
-                  href={
-                    instagramUrl
-                  }
+                  ref={orderButtonRef}
+                  href={instagramUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="flex w-full min-w-0 items-center justify-center gap-2 rounded-full bg-[#9f5845] px-4 py-4 text-center text-sm font-medium text-white transition hover:bg-[#844737] sm:gap-3 sm:px-6"
                 >
                   <span className="shrink-0 text-base">
-                    ◎
+                    <FaInstagram />
                   </span>
 
                   <span className="min-w-0 truncate">
