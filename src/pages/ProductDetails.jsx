@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react"
-import { ChevronLeft, ChevronRight, ArrowLeft, Check, Share2 } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+  Check,
+  Share2,
+} from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 
 import { useSiteSettings } from "../hooks/useSiteSettings"
@@ -17,7 +23,13 @@ function ProductDetails() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [orderCopied, setOrderCopied] = useState(false)
 
+  // Gallery animation
+  const [slideDirection, setSlideDirection] = useState("next")
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [previousImage, setPreviousImage] = useState(null)
+
   const touchStartX = useRef(null)
+  const animationTimeoutRef = useRef(null)
 
   const { settings } = useSiteSettings()
 
@@ -26,6 +38,20 @@ function ProductDetails() {
     toggleFavorite,
   } = useFavorites()
 
+  /*
+   * Clean up animation timer
+   */
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  /*
+   * Load product
+   */
   useEffect(() => {
     async function loadProduct() {
       try {
@@ -47,11 +73,7 @@ function ProductDetails() {
   }, [slug])
 
   /*
-   * Dynamic SEO metadata for product pages.
-   *
-   * This updates the browser title, description,
-   * canonical URL and social sharing metadata
-   * based on the current Sanity product.
+   * Dynamic SEO metadata
    */
   useEffect(() => {
     if (!product) return
@@ -75,11 +97,11 @@ function ProductDetails() {
 
     const imageUrl = product.mainImage
       ? urlFor(product.mainImage)
-        .width(1200)
-        .height(1200)
-        .fit("crop")
-        .auto("format")
-        .url()
+          .width(1200)
+          .height(1200)
+          .fit("crop")
+          .auto("format")
+          .url()
       : null
 
     document.title = title
@@ -100,9 +122,6 @@ function ProductDetails() {
       element.setAttribute("content", content)
     }
 
-    /*
-     * Basic SEO
-     */
     setMeta(
       "name",
       "description",
@@ -115,9 +134,6 @@ function ProductDetails() {
       "index, follow"
     )
 
-    /*
-     * Open Graph
-     */
     setMeta(
       "property",
       "og:title",
@@ -156,9 +172,6 @@ function ProductDetails() {
       )
     }
 
-    /*
-     * Twitter / X
-     */
     setMeta(
       "name",
       "twitter:card",
@@ -185,9 +198,6 @@ function ProductDetails() {
       )
     }
 
-    /*
-     * Canonical URL
-     */
     let canonical = document.head.querySelector(
       'link[rel="canonical"]'
     )
@@ -203,10 +213,6 @@ function ProductDetails() {
       productUrl
     )
 
-    /*
-     * Restore homepage metadata when
-     * leaving the product page.
-     */
     return () => {
       const defaultTitle =
         "Chirashree Creation | Handmade Embroidery & Personalized Gifts"
@@ -282,9 +288,6 @@ function ProductDetails() {
         defaultOgDescription
       )
 
-      /*
-       * Remove product-specific social images.
-       */
       const ogImage = document.head.querySelector(
         'meta[property="og:image"]'
       )
@@ -296,9 +299,6 @@ function ProductDetails() {
       ogImage?.remove()
       twitterImage?.remove()
 
-      /*
-       * Restore homepage canonical URL.
-       */
       canonical?.setAttribute(
         "href",
         defaultUrl
@@ -354,7 +354,9 @@ function ProductDetails() {
   }
 
   const galleryImages = [
-    ...(product.mainImage ? [product.mainImage] : []),
+    ...(product.mainImage
+      ? [product.mainImage]
+      : []),
     ...(product.gallery || []),
   ]
 
@@ -367,11 +369,11 @@ function ProductDetails() {
 
   const imageUrl = selectedImage
     ? urlFor(selectedImage)
-      .width(1200)
-      .height(1200)
-      .fit("crop")
-      .auto("format")
-      .url()
+        .width(1200)
+        .height(1200)
+        .fit("crop")
+        .auto("format")
+        .url()
     : null
 
   const productUrl = window.location.href
@@ -381,8 +383,12 @@ function ProductDetails() {
     "@type": "Product",
     name: product.name,
     description:
-      product.description || product.shortDescription || "",
-    image: imageUrl ? [imageUrl] : [],
+      product.description ||
+      product.shortDescription ||
+      "",
+    image: imageUrl
+      ? [imageUrl]
+      : [],
     url: productUrl,
 
     brand: {
@@ -401,30 +407,88 @@ function ProductDetails() {
   const instagramUsername =
     settings?.instagramUsername || ""
 
-  const instagramUrl = instagramUsername
-    ? `https://instagram.com/${instagramUsername}`
-    : "#"
+  const instagramUrl =
+    instagramUsername
+      ? `https://instagram.com/${instagramUsername}`
+      : "#"
+
+  /*
+   * Change gallery image
+   *
+   * IMPORTANT:
+   * We keep the old image and new image
+   * rendered at the same time.
+   */
+  function changeGalleryImage(
+    nextImage,
+    direction
+  ) {
+    if (
+      !nextImage ||
+      isAnimating ||
+      nextImage === selectedImage
+    ) {
+      return
+    }
+
+    setPreviousImage(selectedImage)
+
+    setSlideDirection(direction)
+
+    setIsAnimating(true)
+
+    setSelectedImage(nextImage)
+
+    if (animationTimeoutRef.current) {
+      clearTimeout(
+        animationTimeoutRef.current
+      )
+    }
+
+    animationTimeoutRef.current =
+      setTimeout(() => {
+        setPreviousImage(null)
+        setIsAnimating(false)
+      }, 400)
+  }
 
   function showPreviousImage() {
-    if (galleryImages.length <= 1) return
+    if (
+      galleryImages.length <= 1 ||
+      isAnimating
+    ) {
+      return
+    }
 
     const previousIndex =
       currentImageIndex === 0
         ? galleryImages.length - 1
         : currentImageIndex - 1
 
-    setSelectedImage(galleryImages[previousIndex])
+    changeGalleryImage(
+      galleryImages[previousIndex],
+      "previous"
+    )
   }
 
   function showNextImage() {
-    if (galleryImages.length <= 1) return
+    if (
+      galleryImages.length <= 1 ||
+      isAnimating
+    ) {
+      return
+    }
 
     const nextIndex =
-      currentImageIndex === galleryImages.length - 1
+      currentImageIndex ===
+      galleryImages.length - 1
         ? 0
         : currentImageIndex + 1
 
-    setSelectedImage(galleryImages[nextIndex])
+    changeGalleryImage(
+      galleryImages[nextIndex],
+      "next"
+    )
   }
 
   function handleTouchStart(event) {
@@ -433,7 +497,9 @@ function ProductDetails() {
   }
 
   function handleTouchEnd(event) {
-    if (touchStartX.current === null) return
+    if (touchStartX.current === null) {
+      return
+    }
 
     const touchEndX =
       event.changedTouches[0].clientX
@@ -468,7 +534,9 @@ function ProductDetails() {
           url,
         })
       } else {
-        await navigator.clipboard.writeText(url)
+        await navigator.clipboard.writeText(
+          url
+        )
 
         alert("Product link copied!")
       }
@@ -484,13 +552,15 @@ function ProductDetails() {
 
   async function handleCopyOrderDetails() {
     const price = product.price
-      ? `₹${product.price.toLocaleString("en-IN")}`
+      ? `₹${product.price.toLocaleString(
+          "en-IN"
+        )}`
       : "Price to be confirmed"
 
     const customizationMessage =
       product.isCustomizable
         ? `
-Customizaton details:
+Customization details:
 • Names:
 • Date:
 • Preferred colors:
@@ -529,13 +599,141 @@ Thank you!`
 
   return (
     <>
+      {/* 
+        Gallery animation CSS is kept inside this
+        component so you don't need to change App.css.
+      */}
+      <style>{`
+        .chirashree-gallery {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .chirashree-gallery-image {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          user-select: none;
+          -webkit-user-drag: none;
+        }
+
+        @keyframes chirashree-slide-in-right {
+          0% {
+            transform: translate3d(100%, 0, 0);
+          }
+
+          100% {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes chirashree-slide-in-left {
+          0% {
+            transform: translate3d(-100%, 0, 0);
+          }
+
+          100% {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes chirashree-slide-out-left {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+
+          100% {
+            transform: translate3d(-100%, 0, 0);
+          }
+        }
+
+        @keyframes chirashree-slide-out-right {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+
+          100% {
+            transform: translate3d(100%, 0, 0);
+          }
+        }
+
+        .chirashree-gallery-in-right {
+          animation:
+            chirashree-slide-in-right
+            400ms
+            cubic-bezier(
+              0.22,
+              0.61,
+              0.36,
+              1
+            )
+            both;
+        }
+
+        .chirashree-gallery-in-left {
+          animation:
+            chirashree-slide-in-left
+            400ms
+            cubic-bezier(
+              0.22,
+              0.61,
+              0.36,
+              1
+            )
+            both;
+        }
+
+        .chirashree-gallery-out-left {
+          animation:
+            chirashree-slide-out-left
+            400ms
+            cubic-bezier(
+              0.22,
+              0.61,
+              0.36,
+              1
+            )
+            both;
+        }
+
+        .chirashree-gallery-out-right {
+          animation:
+            chirashree-slide-out-right
+            400ms
+            cubic-bezier(
+              0.22,
+              0.61,
+              0.36,
+              1
+            )
+            both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .chirashree-gallery-in-right,
+          .chirashree-gallery-in-left,
+          .chirashree-gallery-out-left,
+          .chirashree-gallery-out-right {
+            animation-duration: 1ms;
+          }
+        }
+      `}</style>
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productSchema).replace(/</g, "\\u003c"),
+          __html:
+            JSON.stringify(
+              productSchema
+            ).replace(
+              /</g,
+              "\\u003c"
+            ),
         }}
       />
+
       <div className="min-h-screen overflow-x-hidden bg-[#f8f4ed]">
 
         {/* Breadcrumb */}
@@ -558,35 +756,44 @@ Thank you!`
 
               {/* Main image */}
               <div
-                className="relative h-[78vw] min-h-[280px] max-h-[600px] w-full overflow-hidden rounded-[4px] bg-[#efe7da] touch-pan-y sm:aspect-square sm:h-auto sm:min-h-0 sm:max-h-none"
+                className="chirashree-gallery relative h-[78vw] min-h-[280px] max-h-[600px] w-full rounded-[4px] bg-[#efe7da] touch-pan-y sm:aspect-square sm:h-auto sm:min-h-0 sm:max-h-none"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
 
                 {/* Image actions */}
-                <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4 sm:top-4">
+                <div className="absolute right-3 top-3 z-30 flex items-center gap-2 sm:right-4 sm:top-4">
 
                   {/* Save */}
                   <button
                     type="button"
                     onClick={() =>
-                      toggleFavorite(product._id)
+                      toggleFavorite(
+                        product._id
+                      )
                     }
                     aria-label={
-                      isFavorite(product._id)
+                      isFavorite(
+                        product._id
+                      )
                         ? "Remove from favorites"
                         : "Save to favorites"
                     }
                     aria-pressed={isFavorite(
                       product._id
                     )}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:scale-105 sm:h-11 sm:w-11 ${isFavorite(product._id)
-                      ? "text-[#a85f4e]"
-                      : "text-[#4a3528]"
-                      }`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:scale-105 sm:h-11 sm:w-11 ${
+                      isFavorite(
+                        product._id
+                      )
+                        ? "text-[#a85f4e]"
+                        : "text-[#4a3528]"
+                    }`}
                   >
                     <span className="text-xl leading-none">
-                      {isFavorite(product._id)
+                      {isFavorite(
+                        product._id
+                      )
                         ? "♥"
                         : "♡"}
                     </span>
@@ -595,7 +802,9 @@ Thank you!`
                   {/* Share */}
                   <button
                     type="button"
-                    onClick={handleImageShare}
+                    onClick={
+                      handleImageShare
+                    }
                     aria-label="Share product"
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#4a3528] shadow-sm backdrop-blur-sm transition hover:scale-105 hover:text-[#a85f4e] sm:h-11 sm:w-11"
                   >
@@ -607,47 +816,96 @@ Thank you!`
 
                 </div>
 
-                {/* Previous image */}
-                {galleryImages.length > 1 && (
+                {/* Previous */}
+                {galleryImages.length >
+                  1 && (
                   <button
                     type="button"
-                    onClick={showPreviousImage}
+                    onClick={
+                      showPreviousImage
+                    }
                     aria-label="Previous product image"
-                    className="group absolute left-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none sm:left-5"
+                    disabled={isAnimating}
+                    className="group absolute left-4 top-1/2 z-30 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none disabled:cursor-default sm:left-5"
                   >
                     <ChevronLeft
                       size={30}
                       strokeWidth={1.5}
-                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:-translate-x-0.5"
+                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-x-0.5"
                     />
                   </button>
                 )}
 
-                {/* Next image */}
-                {galleryImages.length > 1 && (
+                {/* Next */}
+                {galleryImages.length >
+                  1 && (
                   <button
                     type="button"
-                    onClick={showNextImage}
+                    onClick={
+                      showNextImage
+                    }
                     aria-label="Next product image"
-                    className="group absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none sm:right-5"
+                    disabled={isAnimating}
+                    className="group absolute right-4 top-1/2 z-30 flex -translate-y-1/2 items-center justify-center p-2 text-white transition-all duration-300 hover:scale-110 focus:outline-none disabled:cursor-default sm:right-5"
                   >
                     <ChevronRight
                       size={30}
                       strokeWidth={1.5}
-                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:translate-x-0.5"
+                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:translate-x-0.5"
                     />
                   </button>
                 )}
 
-                {/* Product image */}
+                {/* Product images */}
                 {imageUrl ? (
-                  <img
-                    key={currentImageIndex}
-                    src={imageUrl}
-                    alt={`${product.name} view ${currentImageIndex + 1}`}
-                    draggable="false"
-                    className="absolute inset-0 h-full w-full select-none object-cover"
-                  />
+                  <div className="absolute inset-0 overflow-hidden">
+
+                    {/* OLD IMAGE */}
+                    {isAnimating &&
+                      previousImage && (
+                        <img
+                          src={urlFor(
+                            previousImage
+                          )
+                            .width(1200)
+                            .height(1200)
+                            .fit("crop")
+                            .auto("format")
+                            .url()}
+                          alt=""
+                          aria-hidden="true"
+                          draggable="false"
+                          className={`chirashree-gallery-image ${
+                            slideDirection ===
+                            "next"
+                              ? "chirashree-gallery-out-left"
+                              : "chirashree-gallery-out-right"
+                          }`}
+                        />
+                      )}
+
+                    {/* NEW IMAGE */}
+                    <img
+                      key={
+                        selectedImage?._key ||
+                        imageUrl
+                      }
+                      src={imageUrl}
+                      alt={`${product.name} view ${
+                        currentImageIndex + 1
+                      }`}
+                      draggable="false"
+                      className={`chirashree-gallery-image ${
+                        isAnimating
+                          ? slideDirection ===
+                            "next"
+                            ? "chirashree-gallery-in-right"
+                            : "chirashree-gallery-in-left"
+                          : ""
+                      }`}
+                    />
+
+                  </div>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="font-serif text-2xl text-[#765c4a]">
@@ -658,12 +916,18 @@ Thank you!`
 
               </div>
 
-              {/* Image counter / swipe hint */}
-              {galleryImages.length > 1 && (
+              {/* Counter */}
+              {galleryImages.length >
+                1 && (
                 <div className="mt-3 flex items-center justify-between">
 
                   <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#9a8575]">
-                    {currentImageIndex + 1} / {galleryImages.length}
+                    {currentImageIndex +
+                      1}{" "}
+                    /{" "}
+                    {
+                      galleryImages.length
+                    }
                   </p>
 
                   <p className="text-[10px] text-[#9a8575] sm:hidden">
@@ -673,62 +937,100 @@ Thank you!`
                 </div>
               )}
 
-              {/* Gallery thumbnails */}
-              {galleryImages.length > 1 && (
+              {/* Thumbnails */}
+              {galleryImages.length >
+                1 && (
                 <div
                   className="mt-3 flex w-full min-w-0 gap-3 overflow-x-auto pb-2 scrollbar-none"
                   style={{
-                    scrollbarWidth: "none",
+                    scrollbarWidth:
+                      "none",
                   }}
                 >
-                  {galleryImages.map((image, index) => {
-                    const thumbnailUrl = urlFor(image)
-                      .width(220)
-                      .height(220)
-                      .fit("crop")
-                      .auto("format")
-                      .url()
+                  {galleryImages.map(
+                    (
+                      image,
+                      index
+                    ) => {
+                      const thumbnailUrl =
+                        urlFor(
+                          image
+                        )
+                          .width(220)
+                          .height(220)
+                          .fit("crop")
+                          .auto("format")
+                          .url()
 
-                    const isSelected =
-                      currentImageIndex === index
+                      const isSelected =
+                        currentImageIndex ===
+                        index
 
-                    return (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() =>
-                          setSelectedImage(image)
-                        }
-                        aria-label={`View ${product.name} image ${index + 1}`}
-                        aria-current={
-                          isSelected
-                            ? "true"
-                            : undefined
-                        }
-                        className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-[4px] border-2 transition duration-300 sm:h-24 sm:w-24 ${isSelected
-                          ? "border-[#a85f4e]"
-                          : "border-transparent hover:border-[#d8cbbd]"
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          disabled={
+                            isAnimating
+                          }
+                          onClick={() => {
+                            if (
+                              isAnimating ||
+                              image ===
+                                selectedImage
+                            ) {
+                              return
+                            }
+
+                            const direction =
+                              index >
+                              currentImageIndex
+                                ? "next"
+                                : "previous"
+
+                            changeGalleryImage(
+                              image,
+                              direction
+                            )
+                          }}
+                          aria-label={`View ${product.name} image ${
+                            index + 1
                           }`}
-                      >
-                        <img
-                          src={thumbnailUrl}
-                          alt={`${product.name} thumbnail ${index + 1}`}
-                          draggable="false"
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                        />
+                          aria-current={
+                            isSelected
+                              ? "true"
+                              : undefined
+                          }
+                          className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-[4px] border-2 transition duration-300 sm:h-24 sm:w-24 ${
+                            isSelected
+                              ? "border-[#a85f4e]"
+                              : "border-transparent hover:border-[#d8cbbd]"
+                          }`}
+                        >
+                          <img
+                            src={
+                              thumbnailUrl
+                            }
+                            alt={`${product.name} thumbnail ${
+                              index + 1
+                            }`}
+                            draggable="false"
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          />
 
-                        {isSelected && (
-                          <div className="absolute inset-0 bg-[#a85f4e]/10" />
-                        )}
-                      </button>
-                    )
-                  })}
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-[#a85f4e]/10" />
+                          )}
+                        </button>
+                      )
+                    }
+                  )}
                 </div>
               )}
 
             </div>
 
-            {/* Product Information */}
+            {/* Product information */}
             <div className="min-w-0 lg:py-4">
 
               {product.category?.name && (
@@ -743,10 +1045,14 @@ Thank you!`
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <p className="text-xl font-medium text-[#4a3528]">
-                  ₹{product.price?.toLocaleString("en-IN")}
+                  ₹
+                  {product.price?.toLocaleString(
+                    "en-IN"
+                  )}
                 </p>
 
-                {product.productType === "customized" && (
+                {product.productType ===
+                  "customized" && (
                   <span className="rounded-full bg-[#efe0d8] px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9f5845]">
                     Personalized
                   </span>
@@ -755,7 +1061,9 @@ Thank you!`
 
               {product.shortDescription && (
                 <p className="mt-6 text-base leading-7 text-[#765c4a]">
-                  {product.shortDescription}
+                  {
+                    product.shortDescription
+                  }
                 </p>
               )}
 
@@ -770,7 +1078,9 @@ Thank you!`
                     </h2>
 
                     <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#765c4a]">
-                      {product.customizationDetails}
+                      {
+                        product.customizationDetails
+                      }
                     </p>
                   </div>
                 )}
@@ -779,7 +1089,9 @@ Thank you!`
               <div className="mt-8 min-w-0">
 
                 <a
-                  href={instagramUrl}
+                  href={
+                    instagramUrl
+                  }
                   target="_blank"
                   rel="noreferrer"
                   className="flex w-full min-w-0 items-center justify-center gap-2 rounded-full bg-[#9f5845] px-4 py-4 text-center text-sm font-medium text-white transition hover:bg-[#844737] sm:gap-3 sm:px-6"
@@ -795,7 +1107,9 @@ Thank you!`
 
                 <button
                   type="button"
-                  onClick={handleCopyOrderDetails}
+                  onClick={
+                    handleCopyOrderDetails
+                  }
                   className="mt-3 flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-[#d8cbbd] px-4 py-3.5 text-center text-sm font-medium text-[#4a3528] transition hover:border-[#a85f4e] hover:text-[#a85f4e] sm:px-6"
                 >
                   {orderCopied ? (
@@ -818,30 +1132,33 @@ Thank you!`
                 </button>
 
                 <div className="mt-5 min-w-0 rounded-lg border border-[#e5dcd0] bg-[#efe7da]/60 p-5">
+
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#4a3528]">
                     When you message us
                   </p>
 
                   <p className="mt-2 text-sm leading-6 text-[#765c4a]">
-                    Please first copy the order details then DM us. Mention the product name and tell us any
-                    customization details you'd like. We'll guide you
-                    through the rest of the process.
+                    Please first copy the order details then DM us. Mention the product name and tell us any customization details you'd like. We'll guide you through the rest of the process.
                   </p>
 
                   <div className="mt-4 min-w-0 rounded-md bg-[#f8f4ed] px-4 py-3">
+
                     <p className="text-[10px] uppercase tracking-[0.12em] text-[#8a7666]">
                       Product
                     </p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#4a3528]">
-                      {product.name}
+                      {
+                        product.name
+                      }
                     </p>
+
                   </div>
+
                 </div>
 
                 <p className="mt-3 text-center text-[11px] leading-5 text-[#8a7666]">
-                  Message us on Instagram to check availability,
-                  customization options and place your order.
+                  Message us on Instagram to check availability, customization options and place your order.
                 </p>
 
                 <div className="mt-4 flex flex-wrap justify-center gap-3">
@@ -850,32 +1167,43 @@ Thank you!`
                   <button
                     type="button"
                     onClick={() =>
-                      toggleFavorite(product._id)
+                      toggleFavorite(
+                        product._id
+                      )
                     }
-                    className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition ${isFavorite(product._id)
-                      ? "border-[#a85f4e] bg-[#efe0d8] text-[#a85f4e]"
-                      : "border-[#d8cbbd] text-[#4a3528] hover:border-[#a85f4e] hover:text-[#a85f4e]"
-                      }`}
+                    className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition ${
+                      isFavorite(
+                        product._id
+                      )
+                        ? "border-[#a85f4e] bg-[#efe0d8] text-[#a85f4e]"
+                        : "border-[#d8cbbd] text-[#4a3528] hover:border-[#a85f4e] hover:text-[#a85f4e]"
+                    }`}
                   >
                     <span className="text-base">
-                      {isFavorite(product._id)
+                      {isFavorite(
+                        product._id
+                      )
                         ? "♥"
                         : "♡"}
                     </span>
 
-                    {isFavorite(product._id)
+                    {isFavorite(
+                      product._id
+                    )
                       ? "Saved"
                       : "Save"}
                   </button>
 
                   {/* Share */}
-                  <ShareButton product={product} />
+                  <ShareButton
+                    product={product}
+                  />
 
                 </div>
 
               </div>
 
-              {/* Product Details */}
+              {/* Product details */}
               <div className="mt-10 border-t border-[#e5dcd0]">
 
                 {product.materials && (
@@ -885,7 +1213,9 @@ Thank you!`
                     </span>
 
                     <span className="text-right text-[#4a3528]">
-                      {product.materials}
+                      {
+                        product.materials
+                      }
                     </span>
                   </div>
                 )}
@@ -897,7 +1227,9 @@ Thank you!`
                     </span>
 
                     <span className="text-right text-[#4a3528]">
-                      {product.dimensions}
+                      {
+                        product.dimensions
+                      }
                     </span>
                   </div>
                 )}
@@ -909,7 +1241,9 @@ Thank you!`
                     </span>
 
                     <span className="text-right text-[#4a3528]">
-                      {product.processingTime}
+                      {
+                        product.processingTime
+                      }
                     </span>
                   </div>
                 )}
@@ -930,14 +1264,18 @@ Thank you!`
               </p>
 
               <p className="mt-5 whitespace-pre-line text-base leading-8 text-[#765c4a]">
-                {product.description}
+                {
+                  product.description
+                }
               </p>
 
             </div>
           </section>
         )}
 
-        <RelatedProducts product={product} />
+        <RelatedProducts
+          product={product}
+        />
 
       </div>
     </>
